@@ -1,37 +1,52 @@
 # src/order_service.py
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from enum import StrEnum
+from typing import TypedDict, NotRequired
 
-OrderDict = Dict[str, int]
+
+class OrderData(TypedDict):
+    id: int
+    amount: int
+    priority: NotRequired[bool]
+
+
+class OrderStatus(StrEnum):
+    OK = "ok"
+    ERROR = "error"
 
 
 @dataclass
 class ProcessedOrder:
     id: int
-    status: str
+    status: OrderStatus
     priority: bool
 
 
-PriorityFlag = Optional[str]
+class OrdersProcessor:
+    @staticmethod
+    def process_orders(
+        order_list: list[OrderData],
+    ) -> list[ProcessedOrder]:
+        if order_list is None:
+            return []
 
+        results: list[ProcessedOrder] = []
 
-def handle_orders(
-    data: Union[List[OrderDict], PriorityFlag, None],
-) -> Union[List[ProcessedOrder], str]:
-    results: List[ProcessedOrder] = []
-    for d in data:  # type: ignore[assignment]
-        if "amount" not in d or d["amount"] is None or d["amount"] <= 0:
-            results.append({"id": d.get("id"), "status": "error"})
-            continue
+        for order in order_list:
+            order_id = order.get("id")
+            amount = order.get("amount")
 
-        if d.get("priority") == True:
-            results.append({"id": d["id"], "status": "ok", "priority": True})
-        else:
-            results.append({"id": d["id"], "status": "ok", "priority": False})
+            if not isinstance(amount, int) or amount <= 0:
+                processed_order = ProcessedOrder(
+                    id=order_id, status=OrderStatus.ERROR, priority=False
+                )
+                results.append(processed_order)
+            else:
+                is_priority = bool(order.get("priority") is True)
+                processed_order = ProcessedOrder(
+                    id=order_id, status=OrderStatus.OK, priority=is_priority
+                )
+                results.append(processed_order)
 
-    results = sorted(results, key=lambda x: x.get("priority", False))
-    return results
-
-
-def process_data(items):
-    return handle_orders(items)
+        results.sort(key=lambda order: order.priority, reverse=True)
+        return results
