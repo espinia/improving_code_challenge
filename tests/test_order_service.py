@@ -149,7 +149,7 @@ class TestOrdersProcessor:
         result = OrdersProcessor.process_orders(orders)
 
         # Expected sorted order: Priority OK, then Non-Priority OK, then Errors (all priority=False)
-        expected_ids_in_order = [704, 701, 702, 703, 705]
+        expected_ids_in_order = [704, 701, 703, 702, 705]
 
         assert len(result) == 5
         assert [r.id for r in result] == expected_ids_in_order
@@ -157,6 +157,6 @@ class TestOrdersProcessor:
         # Verify statuses
         assert result[0].status == OrderStatus.OK and result[0].priority is True  # 704
         assert result[1].status == OrderStatus.OK and result[1].priority is False # 701
-        assert result[2].status == OrderStatus.ERROR and result[2].priority is False # 702
-        assert result[3].status == OrderStatus.OK and result[3].priority is False # 703
+        assert result[2].status == OrderStatus.OK and result[2].priority is False # 703
+        assert result[3].status == OrderStatus.ERROR and result[3].priority is False # 702
         assert result[4].status == OrderStatus.ERROR and result[4].priority is False # 705

@@ -31,6 +31,8 @@ class OrdersProcessor:
             return []
 
         results: list[ProcessedOrder] = []
+        success_orders: list[ProcessedOrder] = []
+        error_orders: list[ProcessedOrder] = []
 
         for order in order_list:
             order_id = order.get("id")
@@ -40,13 +42,15 @@ class OrdersProcessor:
                 processed_order = ProcessedOrder(
                     id=order_id, status=OrderStatus.ERROR, priority=False
                 )
-                results.append(processed_order)
+                error_orders.append(processed_order)
             else:
                 is_priority = bool(order.get("priority") is True)
                 processed_order = ProcessedOrder(
                     id=order_id, status=OrderStatus.OK, priority=is_priority
                 )
-                results.append(processed_order)
+                success_orders.append(processed_order)
 
-        results.sort(key=lambda order: order.priority, reverse=True)
+        success_orders.sort(key=lambda order: order.priority, reverse=True)
+        error_orders.sort(key=lambda order: order.priority, reverse=True)
+        results = success_orders + error_orders
         return results
